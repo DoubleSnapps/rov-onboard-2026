@@ -370,9 +370,16 @@ class JoyToMavlink(Node):
         if not self.joy_received:
             self.joy_received = True; self.get_logger().info('Receiving joystick data')
 
-        self.surge = self._filter(apply_deadzone(msg.axes[1]), self.prev_surge); self.prev_surge = self.surge
-        self.sway = self._filter(apply_deadzone(msg.axes[0]), self.prev_sway); self.prev_sway = self.sway
-        self.yaw = self._filter(apply_deadzone(msg.axes[3]), self.prev_yaw); self.prev_yaw = self.yaw
+        # apply filter to make sure surge sway and yaw values are within deadzone?
+        self.surge = self._filter(apply_deadzone(msg.axes[1]), self.prev_surge); 
+        self.sway = self._filter(apply_deadzone(msg.axes[0]), self.prev_sway);
+        self.yaw = self._filter(apply_deadzone(msg.axes[3]), self.prev_yaw); 
+        
+        # save modified surge sway and yaw as prev 
+        self.prev_surge = self.surge
+        self.prev_sway = self.sway
+        self.prev_yaw = self.yaw
+        
 
         dl = msg.buttons[3] == 1  # Square button
         if dl and not self.dpad_left_prev: self._toggle_dh()
@@ -403,7 +410,7 @@ class JoyToMavlink(Node):
             self.heave = self._filter(apply_deadzone(msg.axes[4]), self.prev_heave)
         self.prev_heave = self.heave
 
-        opts = msg.buttons[9] == 1
+        opts = msg.buttons[9] == 1 # Options button
         if opts and not self.arm_btn_prev and not self.arm_pending:
             self.want_armed = not self.want_armed; self.arm_pending = True; self._arm(self.want_armed)
         self.arm_btn_prev = opts
